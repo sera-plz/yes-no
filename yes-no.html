@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Yes / No</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .container {
+            display: flex;
+            height: 100%;
+            width: 100%;
+        }
+        .half {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 72px;
+            font-weight: bold;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .left {
+            background-color: #1a1a2e;
+            border-right: 2px solid #333;
+        }
+        .right {
+            background-color: #1a1a2e;
+        }
+        .container.locked .left.selected {
+            background-color: #22c55e;
+            color: white;
+            flex: 1;
+        }
+        .container.locked .right.selected {
+            background-color: #ef4444;
+            color: white;
+            flex: 1;
+        }
+        .container.locked .half:not(.selected) {
+            flex: 0;
+            overflow: hidden;
+            opacity: 0;
+        }
+        .reset-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 32px;
+            font-size: 18px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .container.locked ~ .reset-btn {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <div class="half left" id="yes">YES</div>
+        <div class="half right" id="no">NO</div>
+    </div>
+    <button class="reset-btn" id="reset">Reset</button>
+    <script>
+        const container = document.getElementById('container');
+        const yes = document.getElementById('yes');
+        const no = document.getElementById('no');
+        const reset = document.getElementById('reset');
+        let locked = false;
+
+        function select(element) {
+            if (locked) return;
+            locked = true;
+            element.classList.add('selected');
+            container.classList.add('locked');
+        }
+
+        yes.addEventListener('click', () => select(yes));
+        no.addEventListener('click', () => select(no));
+
+        reset.addEventListener('click', () => {
+            locked = false;
+            yes.classList.remove('selected');
+            no.classList.remove('selected');
+            container.classList.remove('locked');
+        });
+    </script>
+</body>
+</html>

@@ -13,7 +13,7 @@
         html, body {
             height: 100%;
             overflow: hidden;
-            touch-action: manipulation;
+            touch-action: none;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
@@ -33,7 +33,7 @@
             font-weight: bold;
             color: rgba(255,255,255,0.5);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background-color 0.15s, flex 0.3s, opacity 0.3s;
         }
         .left {
             background-color: #1a1a2e;
@@ -42,20 +42,26 @@
         .right {
             background-color: #1a1a2e;
         }
-        .container.locked .left.selected {
+        .left.selected {
             background-color: #22c55e;
             color: white;
-            flex: 1;
         }
-        .container.locked .right.selected {
+        .right.selected {
             background-color: #ef4444;
             color: white;
-            flex: 1;
         }
         .container.locked .half:not(.selected) {
             flex: 0;
             overflow: hidden;
             opacity: 0;
+        }
+        .container.both .left {
+            background-color: #22c55e;
+            color: white;
+        }
+        .container.both .right {
+            background-color: #ef4444;
+            color: white;
         }
         .reset-btn {
             position: fixed;
@@ -73,10 +79,11 @@
             pointer-events: none;
             transition: opacity 0.3s;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            z-index: 100;
         }
-        .container.locked ~ .reset-btn {
-            opacity: 1;
-            pointer-events: auto;
+        .show-reset {
+            opacity: 1 !important;
+            pointer-events: auto !important;
         }
     </style>
 </head>
@@ -91,23 +98,76 @@
         const yes = document.getElementById('yes');
         const no = document.getElementById('no');
         const reset = document.getElementById('reset');
-        let locked = false;
+        
+        let yesLocked = false;
+        let noLocked = false;
 
-        function select(element) {
-            if (locked) return;
-            locked = true;
-            element.classList.add('selected');
-            container.classList.add('locked');
+        function updateState() {
+            if (yesLocked && noLocked) {
+                container.classList.add('both');
+                container.classList.remove('locked');
+            } else if (yesLocked || noLocked) {
+                container.classList.add('locked');
+                container.classList.remove('both');
+            }
+            reset.classList.toggle('show-reset', yesLocked || noLocked);
         }
 
-        yes.addEventListener('click', () => select(yes));
-        no.addEventListener('click', () => select(no));
+        function handleTouch(e) {
+            e.preventDefault();
+            
+            for (let touch of e.changedTouches) {
+                const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                
+                if (target === yes || target.closest('#yes')) {
+                    if (!yesLocked) {
+                        yesLocked = true;
+                        yes.classList.add('selected');
+                        updateState();
+                    }
+                } else if (target === no || target.closest('#no')) {
+                    if (!noLocked) {
+                        noLocked = true;
+                        no.classList.add('selected');
+                        updateState();
+                    }
+                }
+            }
+        }
 
-        reset.addEventListener('click', () => {
-            locked = false;
+        // Touch events
+        document.addEventListener('touchstart', handleTouch, { passive: false });
+
+        // Mouse fallback for desktop testing
+        yes.addEventListener('click', () => {
+            if (!yesLocked) {
+                yesLocked = true;
+                yes.classList.add('selected');
+                updateState();
+            }
+        });
+
+        no.addEventListener('click', () => {
+            if (!noLocked) {
+                noLocked = true;
+                no.classList.add('selected');
+                updateState();
+            }
+        });
+
+        // Reset
+        reset.addEventListener('click', (e) => {
+            e.stopPropagation();
+            yesLocked = false;
+            noLocked = false;
             yes.classList.remove('selected');
             no.classList.remove('selected');
-            container.classList.remove('locked');
+            container.classList.remove('locked', 'both');
+            reset.classList.remove('show-reset');
+        });
+
+        reset.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
         });
     </script>
 </body>
